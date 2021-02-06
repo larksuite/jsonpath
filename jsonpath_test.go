@@ -96,7 +96,7 @@ func Test_jsonpath_JsonPathLookup_1(t *testing.T) {
 	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 || res_v[2].(float64) != 8.99 || res_v[3].(float64) != 22.99 {
 		t.Errorf("exp: [8.95, 12.99, 8.99, 22.99], got: %v", res)
 	}
-	
+
 	// range
 	res, err = JsonPathLookup(json_data, "$.store.book[0:1].price")
 	t.Log(err, res)
@@ -154,63 +154,63 @@ func Test_jsonpath_authors_of_all_books(t *testing.T) {
 }
 
 var token_cases = []map[string]interface{}{
-	map[string]interface{}{
+	{
 		"query":  "$..author",
 		"tokens": []string{"$", "*", "author"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$.store.*",
 		"tokens": []string{"$", "store", "*"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$.store..price",
 		"tokens": []string{"$", "store", "*", "price"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$.store.book[*].author",
 		"tokens": []string{"$", "store", "book[*]", "author"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[2]",
 		"tokens": []string{"$", "*", "book[2]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[(@.length-1)]",
 		"tokens": []string{"$", "*", "book[(@.length-1)]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[0,1]",
 		"tokens": []string{"$", "*", "book[0,1]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[:2]",
 		"tokens": []string{"$", "*", "book[:2]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[?(@.isbn)]",
 		"tokens": []string{"$", "*", "book[?(@.isbn)]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$.store.book[?(@.price < 10)]",
 		"tokens": []string{"$", "store", "book[?(@.price < 10)]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[?(@.price <= $.expensive)]",
 		"tokens": []string{"$", "*", "book[?(@.price <= $.expensive)]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[?(@.author =~ /.*REES/i)]",
 		"tokens": []string{"$", "*", "book[?(@.author =~ /.*REES/i)]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..book[?(@.author =~ /.*REES\\]/i)]",
 		"tokens": []string{"$", "*", "book[?(@.author =~ /.*REES\\]/i)]"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$..*",
 		"tokens": []string{"$", "*"},
 	},
-	map[string]interface{}{
+	{
 		"query":  "$....author",
 		"tokens": []string{"$", "*", "author"},
 	},
@@ -237,13 +237,13 @@ func Test_jsonpath_tokenize(t *testing.T) {
 
 var parse_token_cases = []map[string]interface{}{
 
-	map[string]interface{}{
+	{
 		"token": "$",
 		"op":    "root",
 		"key":   "$",
 		"args":  nil,
 	},
-	map[string]interface{}{
+	{
 		"token": "store",
 		"op":    "key",
 		"key":   "store",
@@ -251,25 +251,25 @@ var parse_token_cases = []map[string]interface{}{
 	},
 
 	// idx --------------------------------------
-	map[string]interface{}{
+	{
 		"token": "book[2]",
 		"op":    "idx",
 		"key":   "book",
 		"args":  []int{2},
 	},
-	map[string]interface{}{
+	{
 		"token": "book[-1]",
 		"op":    "idx",
 		"key":   "book",
 		"args":  []int{-1},
 	},
-	map[string]interface{}{
+	{
 		"token": "book[0,1]",
 		"op":    "idx",
 		"key":   "book",
 		"args":  []int{0, 1},
 	},
-	map[string]interface{}{
+	{
 		"token": "[0]",
 		"op":    "idx",
 		"key":   "",
@@ -277,25 +277,25 @@ var parse_token_cases = []map[string]interface{}{
 	},
 
 	// range ------------------------------------
-	map[string]interface{}{
+	{
 		"token": "book[1:-1]",
 		"op":    "range",
 		"key":   "book",
 		"args":  [2]interface{}{1, -1},
 	},
-	map[string]interface{}{
+	{
 		"token": "book[*]",
 		"op":    "range",
 		"key":   "book",
 		"args":  [2]interface{}{nil, nil},
 	},
-	map[string]interface{}{
+	{
 		"token": "book[:2]",
 		"op":    "range",
 		"key":   "book",
 		"args":  [2]interface{}{nil, 2},
 	},
-	map[string]interface{}{
+	{
 		"token": "book[-2:]",
 		"op":    "range",
 		"key":   "book",
@@ -303,31 +303,31 @@ var parse_token_cases = []map[string]interface{}{
 	},
 
 	// filter --------------------------------
-	map[string]interface{}{
+	{
 		"token": "book[?( @.isbn      )]",
 		"op":    "filter",
 		"key":   "book",
 		"args":  "@.isbn",
 	},
-	map[string]interface{}{
+	{
 		"token": "book[?(@.price < 10)]",
 		"op":    "filter",
 		"key":   "book",
 		"args":  "@.price < 10",
 	},
-	map[string]interface{}{
+	{
 		"token": "book[?(@.price <= $.expensive)]",
 		"op":    "filter",
 		"key":   "book",
 		"args":  "@.price <= $.expensive",
 	},
-	map[string]interface{}{
+	{
 		"token": "book[?(@.author =~ /.*REES/i)]",
 		"op":    "filter",
 		"key":   "book",
 		"args":  "@.author =~ /.*REES/i",
 	},
-	map[string]interface{}{
+	{
 		"token": "*",
 		"op":    "scan",
 		"key":   "*",
@@ -445,10 +445,10 @@ func Test_jsonpath_get_key(t *testing.T) {
 	}
 
 	obj4 := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"a": 1,
 		},
-		map[string]interface{}{
+		{
 			"a": 2,
 		},
 	}
@@ -579,7 +579,7 @@ func Test_jsonpath_types_eval(t *testing.T) {
 
 var tcase_parse_filter = []map[string]interface{}{
 	// 0
-	map[string]interface{}{
+	{
 		"filter":  "@.isbn",
 		"exp_lp":  "@.isbn",
 		"exp_op":  "exists",
@@ -587,7 +587,7 @@ var tcase_parse_filter = []map[string]interface{}{
 		"exp_err": nil,
 	},
 	// 1
-	map[string]interface{}{
+	{
 		"filter":  "@.price < 10",
 		"exp_lp":  "@.price",
 		"exp_op":  "<",
@@ -595,7 +595,7 @@ var tcase_parse_filter = []map[string]interface{}{
 		"exp_err": nil,
 	},
 	// 2
-	map[string]interface{}{
+	{
 		"filter":  "@.price <= $.expensive",
 		"exp_lp":  "@.price",
 		"exp_op":  "<=",
@@ -603,7 +603,7 @@ var tcase_parse_filter = []map[string]interface{}{
 		"exp_err": nil,
 	},
 	// 3
-	map[string]interface{}{
+	{
 		"filter":  "@.author =~ /.*REES/i",
 		"exp_lp":  "@.author",
 		"exp_op":  "=~",
@@ -644,37 +644,37 @@ func Test_jsonpath_parse_filter(t *testing.T) {
 
 var tcase_filter_get_from_explicit_path = []map[string]interface{}{
 	// 0
-	map[string]interface{}{
+	{
 		// 0 {"a": 1}
 		"obj":      map[string]interface{}{"a": 1},
 		"query":    "$.a",
 		"expected": 1,
 	},
-	map[string]interface{}{
+	{
 		// 1 {"a":{"b":1}}
 		"obj":      map[string]interface{}{"a": map[string]interface{}{"b": 1}},
 		"query":    "$.a.b",
 		"expected": 1,
 	},
-	map[string]interface{}{
+	{
 		// 2 {"a": {"b":1, "c":2}}
 		"obj":      map[string]interface{}{"a": map[string]interface{}{"b": 1, "c": 2}},
 		"query":    "$.a.c",
 		"expected": 2,
 	},
-	map[string]interface{}{
+	{
 		// 3 {"a": {"b":1}, "b": 2}
 		"obj":      map[string]interface{}{"a": map[string]interface{}{"b": 1}, "b": 2},
 		"query":    "$.a.b",
 		"expected": 1,
 	},
-	map[string]interface{}{
+	{
 		// 4 {"a": {"b":1}, "b": 2}
 		"obj":      map[string]interface{}{"a": map[string]interface{}{"b": 1}, "b": 2},
 		"query":    "$.b",
 		"expected": 2,
 	},
-	map[string]interface{}{
+	{
 		// 5 {'a': ['b',1]}
 		"obj":      map[string]interface{}{"a": []interface{}{"b", 1}},
 		"query":    "$.a[0]",
@@ -714,7 +714,7 @@ func Test_jsonpath_filter_get_from_explicit_path(t *testing.T) {
 
 var tcase_eval_filter = []map[string]interface{}{
 	// 0
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 1},
 		"root": map[string]interface{}{},
 		"lp":   "@.a",
@@ -723,7 +723,7 @@ var tcase_eval_filter = []map[string]interface{}{
 		"exp":  true,
 	},
 	// 1
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 1},
 		"root": map[string]interface{}{},
 		"lp":   "@.b",
@@ -732,7 +732,7 @@ var tcase_eval_filter = []map[string]interface{}{
 		"exp":  false,
 	},
 	// 2
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 1},
 		"root": map[string]interface{}{"a": 1},
 		"lp":   "$.a",
@@ -741,7 +741,7 @@ var tcase_eval_filter = []map[string]interface{}{
 		"exp":  true,
 	},
 	// 3
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 1},
 		"root": map[string]interface{}{"a": 1},
 		"lp":   "$.b",
@@ -750,7 +750,7 @@ var tcase_eval_filter = []map[string]interface{}{
 		"exp":  false,
 	},
 	// 4
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 1, "b": map[string]interface{}{"c": 2}},
 		"root": map[string]interface{}{"a": 1, "b": map[string]interface{}{"c": 2}},
 		"lp":   "$.b.c",
@@ -759,7 +759,7 @@ var tcase_eval_filter = []map[string]interface{}{
 		"exp":  true,
 	},
 	// 5
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 1, "b": map[string]interface{}{"c": 2}},
 		"root": map[string]interface{}{},
 		"lp":   "$.b.a",
@@ -769,7 +769,7 @@ var tcase_eval_filter = []map[string]interface{}{
 	},
 
 	// 6
-	map[string]interface{}{
+	{
 		"obj":  map[string]interface{}{"a": 3},
 		"root": map[string]interface{}{"a": 3},
 		"lp":   "$.a",
@@ -808,42 +808,42 @@ var (
 )
 var tcase_cmp_any = []map[string]interface{}{
 
-	map[string]interface{}{
+	{
 		"obj1": 1,
 		"obj2": 1,
 		"op":   "==",
 		"exp":  true,
 		"err":  nil,
 	},
-	map[string]interface{}{
+	{
 		"obj1": 1,
 		"obj2": 2,
 		"op":   "==",
 		"exp":  false,
 		"err":  nil,
 	},
-	map[string]interface{}{
+	{
 		"obj1": 1.1,
 		"obj2": 2.0,
 		"op":   "<",
 		"exp":  true,
 		"err":  nil,
 	},
-	map[string]interface{}{
+	{
 		"obj1": "1",
 		"obj2": "2.0",
 		"op":   "<",
 		"exp":  true,
 		"err":  nil,
 	},
-	map[string]interface{}{
+	{
 		"obj1": "1",
 		"obj2": "2.0",
 		"op":   ">",
 		"exp":  false,
 		"err":  nil,
 	},
-	map[string]interface{}{
+	{
 		"obj1": 1,
 		"obj2": 2,
 		"op":   "=~",
@@ -1242,4 +1242,50 @@ func Test_jsonpath_rootnode_is_nested_array_range(t *testing.T) {
 	//if ares[1].(float64) != 3.1 {
 	//	t.Fatal("idx: 0, should be 3.1, got: %v", ares[1])
 	//}
+}
+
+func Test_set_methods(t *testing.T) {
+	jsonText := `
+{
+ "hi" : "there",
+ "level1" : {
+	 "level2" : [1,2,3]
+ },
+ "array2" : [1,2,3]
+}
+`
+	data := map[string]interface{}{}
+	json.Unmarshal([]byte(jsonText), &data)
+
+	c, err := Compile("$.level1.level2")
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
+	err = c.Set(data, 1)
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
+	
+	v, err := JsonPathLookup(data, "$.level1.level2")
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
+	if v != 1 {
+		t.Errorf("err: %s != %d", v, 1)		
+	}
+
+	e, err := Compile("$.array2[1]")
+	err = e.Set(data, "hello")
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
+
+	v, err = JsonPathLookup(data, "$.array2[1]")
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
+
+	if v != "hello" {
+		t.Errorf("err: %s != %s", v, "hello")		
+	}
 }

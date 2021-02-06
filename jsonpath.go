@@ -139,6 +139,42 @@ func (c *Compiled) Lookup(obj interface{}) (interface{}, error) {
 	return obj, nil
 }
 
+func (c *Compiled) Set(obj interface{}, val interface{}) error {
+	if len(c.steps) < 1 {
+		return fmt.Errorf("Need at least one levels to set value")
+	}
+	sub := Compiled{steps: c.steps[0 : len(c.steps)-1]}
+
+	parent, err := sub.Lookup(obj)
+	if err != nil {
+		return err
+	}
+
+	lastStep := c.steps[len(c.steps)-1]
+	switch lastStep.op {
+	case "key":
+		return set_key(parent, lastStep.key, val)
+	case "idx":
+		if len(lastStep.key) > 0 {
+			// no key `$[0].test`
+			parent, err = get_key(parent, lastStep.key)
+			if err != nil {
+				return err
+			}
+		}
+		if len(lastStep.args.([]int)) > 1 {
+			return fmt.Errorf("cannot set multiple items")
+		} else if len(lastStep.args.([]int)) == 1 {
+			return set_idx(parent, lastStep.args.([]int)[0], val)
+		} else {
+			return fmt.Errorf("cannot set on empty slice")
+		}
+	default:
+		return fmt.Errorf("Set must point to specific position")
+	}
+	return nil
+}
+
 func tokenize(query string) ([]string, error) {
 	tokens := []string{}
 	//	token_start := false
@@ -369,6 +405,28 @@ func get_key(obj interface{}, key string) (interface{}, error) {
 	}
 }
 
+
+func set_key(obj interface{}, key string, value interface{}) error {
+	if reflect.TypeOf(obj) == nil {
+		return ErrGetFromNullObj
+	}
+	switch reflect.TypeOf(obj).Kind() {
+	case reflect.Map:
+		// if obj came from stdlib json, its highly likely to be a map[string]interface{}
+		// in which case we can save having to iterate the map keys to work out if the
+		// key exists
+		if jsonMap, ok := obj.(map[string]interface{}); ok {
+			jsonMap[key] = value
+			return nil
+		}
+		return fmt.Errorf("Unable to place key in map")
+	case reflect.Slice:
+		return fmt.Errorf("Unable to place key array")
+	default:
+		return fmt.Errorf("object is not map")
+	}
+}
+
 func get_idx(obj interface{}, idx int) (interface{}, error) {
 	switch reflect.TypeOf(obj).Kind() {
 	case reflect.Slice:
@@ -390,6 +448,31 @@ func get_idx(obj interface{}, idx int) (interface{}, error) {
 		return nil, fmt.Errorf("object is not Slice")
 	}
 }
+
+func set_idx(obj interface{}, idx int, val interface{}) error {
+	switch reflect.TypeOf(obj).Kind() {
+	case reflect.Slice:
+		length := reflect.ValueOf(obj).Len()
+		if idx >= 0 {
+			if idx >= length {
+				return fmt.Errorf("index out of range: len: %v, idx: %v", length, idx)
+			}
+			reflect.ValueOf(obj).Index(idx).Set(reflect.ValueOf(val))
+			return nil
+		} else {
+			// < 0
+			_idx := length + idx
+			if _idx < 0 {
+				return fmt.Errorf("index out of range: len: %v, idx: %v", length, idx)
+			}
+			reflect.ValueOf(obj).Index(idx).Set(reflect.ValueOf(val))
+			return nil
+		}
+	default:
+		return fmt.Errorf("object is not Slice: %s", reflect.TypeOf(obj).Kind())
+	}
+}
+
 
 func get_range(obj, frm, to interface{}) (interface{}, error) {
 	switch reflect.TypeOf(obj).Kind() {

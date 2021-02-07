@@ -21,6 +21,15 @@ func JsonPathLookup(obj interface{}, jpath string) (interface{}, error) {
 	return c.Lookup(obj)
 }
 
+func JsonPathSet(obj interface{}, jpath string, val interface{}) (error) {
+	c, err := Compile(jpath)
+	if err != nil {
+		return err
+	}
+	return c.Set(obj, val)
+}
+
+
 type Compiled struct {
 	path  string
 	steps []step

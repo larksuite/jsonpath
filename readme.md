@@ -15,14 +15,14 @@ Get Started
 ------------
 
 ```bash
-go get github.com/oliveagle/jsonpath
+go get github.com/larksuite/jsonpath
 ```
 
 example code:
 
 ```go
 import (
-    "github.com/oliveagle/jsonpath"
+    "github.com/larksuite/jsonpath"
     "encoding/json"
 )
 

@@ -1,3 +1,3 @@
-module github.com/bmeg/jsonpath
+module github.com/larksuite/jsonpath
 
 go 1.15

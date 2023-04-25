@@ -21,14 +21,13 @@ func JsonPathLookup(obj interface{}, jpath string) (interface{}, error) {
 	return c.Lookup(obj)
 }
 
-func JsonPathSet(obj interface{}, jpath string, val interface{}) (error) {
+func JsonPathSet(obj interface{}, jpath string, val interface{}) error {
 	c, err := Compile(jpath)
 	if err != nil {
 		return err
 	}
 	return c.Set(obj, val)
 }
-
 
 type Compiled struct {
 	path  string
@@ -85,6 +84,19 @@ func (c *Compiled) Lookup(obj interface{}) (interface{}, error) {
 			obj, err = get_key(obj, s.key)
 			if err != nil {
 				return nil, err
+			}
+		case "match":
+			obj, err = get_key(obj, s.key)
+			if err != nil {
+				return nil, err
+			}
+			pair := s.args.([]string)
+			obj, err = get_match(obj, pair[0], pair[1])
+			if err != nil {
+				return nil, err
+			}
+			if obj == nil {
+				return nil, fmt.Errorf("key error: %s[%s=%s] not found in object", s.key, pair[0], pair[1])
 			}
 		case "idx":
 			if len(s.key) > 0 {
@@ -260,7 +272,7 @@ func tokenize(query string) ([]string, error) {
 }
 
 /*
- op: "root", "key", "idx", "range", "filter", "scan"
+ op: "root", "key", "idx", "range", "filter", "scan", "match"
 */
 func parse_token(token string) (op string, key string, args interface{}, err error) {
 	if token == "$" {
@@ -317,6 +329,16 @@ func parse_token(token string) (op string, key string, args interface{}, err err
 		} else if tail == "*" {
 			op = "range"
 			args = [2]interface{}{nil, nil}
+			return
+		} else if strings.Contains(tail, "=") {
+			// match --------------------------------------------------
+			op = "match"
+			pair := strings.Split(tail, "=")
+			if len(pair) != 2 || pair[0] == "" || pair[1] == "" {
+				err = fmt.Errorf("invalid match expression: %v", tail)
+				return
+			}
+			args = pair
 			return
 		} else {
 			// idx ------------------------------------------------
@@ -414,7 +436,6 @@ func get_key(obj interface{}, key string) (interface{}, error) {
 	}
 }
 
-
 func set_key(obj interface{}, key string, value interface{}) error {
 	if reflect.TypeOf(obj) == nil {
 		return ErrGetFromNullObj
@@ -458,6 +479,31 @@ func get_idx(obj interface{}, idx int) (interface{}, error) {
 	}
 }
 
+func get_match(obj interface{}, field, target string) (matchObj interface{}, err error) {
+	v := reflect.ValueOf(obj)
+	switch v.Kind() {
+	case reflect.Slice:
+		for i := 0; i < v.Len(); i++ {
+			element := v.Index(i).Interface()
+			matchObj, err = get_match(element, field, target)
+			if matchObj != nil || err != nil {
+				return
+			}
+		}
+	case reflect.Map:
+		iter := v.MapRange()
+		for iter.Next() {
+			if iter.Key().String() == field && fmt.Sprint(iter.Value().Interface()) == target {
+				return v.Interface(), nil
+			}
+		}
+	default:
+		return nil, fmt.Errorf("object is not map")
+	}
+
+	return nil, nil
+}
+
 func set_idx(obj interface{}, idx int, val interface{}) error {
 	switch reflect.TypeOf(obj).Kind() {
 	case reflect.Slice:
@@ -481,7 +527,6 @@ func set_idx(obj interface{}, idx int, val interface{}) error {
 		return fmt.Errorf("object is not Slice: %s", reflect.TypeOf(obj).Kind())
 	}
 }
-
 
 func get_range(obj, frm, to interface{}) (interface{}, error) {
 	switch reflect.TypeOf(obj).Kind() {

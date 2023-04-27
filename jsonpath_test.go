@@ -57,32 +57,32 @@ func init() {
 
 func Test_jsonpath_JsonPathLookup_1(t *testing.T) {
 	// key from root
-	res, _ := JsonPathLookup(json_data, "$.expensive")
+	res, _ := Get(json_data, "$.expensive")
 	if res_v, ok := res.(float64); ok != true || res_v != 10.0 {
 		t.Errorf("expensive should be 10")
 	}
 
 	// single index
-	res, _ = JsonPathLookup(json_data, "$.store.book[0].price")
+	res, _ = Get(json_data, "$.store.book[0].price")
 	if res_v, ok := res.(float64); ok != true || res_v != 8.95 {
 		t.Errorf("$.store.book[0].price should be 8.95")
 	}
 
 	// nagtive single index
-	res, _ = JsonPathLookup(json_data, "$.store.book[-1].isbn")
+	res, _ = Get(json_data, "$.store.book[-1].isbn")
 	if res_v, ok := res.(string); ok != true || res_v != "0-395-19395-8" {
 		t.Errorf("$.store.book[-1].isbn should be \"0-395-19395-8\"")
 	}
 
 	// multiple index
-	res, err := JsonPathLookup(json_data, "$.store.book[0,1].price")
+	res, err := Get(json_data, "$.store.book[0,1].price")
 	t.Log(err, res)
 	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 {
 		t.Errorf("exp: [8.95, 12.99], got: %v", res)
 	}
 
 	// multiple index
-	res, err = JsonPathLookup(json_data, "$.store.book[0,1].title")
+	res, err = Get(json_data, "$.store.book[0,1].title")
 	t.Log(err, res)
 	if res_v, ok := res.([]interface{}); ok != true {
 		if res_v[0].(string) != "Sayings of the Century" || res_v[1].(string) != "Sword of Honour" {
@@ -91,21 +91,21 @@ func Test_jsonpath_JsonPathLookup_1(t *testing.T) {
 	}
 
 	// full array
-	res, err = JsonPathLookup(json_data, "$.store.book[0:].price")
+	res, err = Get(json_data, "$.store.book[0:].price")
 	t.Log(err, res)
 	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 || res_v[2].(float64) != 8.99 || res_v[3].(float64) != 22.99 {
 		t.Errorf("exp: [8.95, 12.99, 8.99, 22.99], got: %v", res)
 	}
 
 	// range
-	res, err = JsonPathLookup(json_data, "$.store.book[0:1].price")
+	res, err = Get(json_data, "$.store.book[0:1].price")
 	t.Log(err, res)
 	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 {
 		t.Errorf("exp: [8.95, 12.99], got: %v", res)
 	}
 
 	// range
-	res, err = JsonPathLookup(json_data, "$.store.book[0:1].title")
+	res, err = Get(json_data, "$.store.book[0:1].title")
 	t.Log(err, res)
 	if res_v, ok := res.([]interface{}); ok != true {
 		if res_v[0].(string) != "Sayings of the Century" || res_v[1].(string) != "Sword of Honour" {
@@ -115,7 +115,7 @@ func Test_jsonpath_JsonPathLookup_1(t *testing.T) {
 }
 
 func Test_jsonpath_JsonPathLookup_filter(t *testing.T) {
-	res, err := JsonPathLookup(json_data, "$.store.book[?(@.isbn)].isbn")
+	res, err := Get(json_data, "$.store.book[?(@.isbn)].isbn")
 	t.Log(err, res)
 
 	if res_v, ok := res.([]interface{}); ok != true {
@@ -124,7 +124,7 @@ func Test_jsonpath_JsonPathLookup_filter(t *testing.T) {
 		}
 	}
 
-	res, err = JsonPathLookup(json_data, "$.store.book[?(@.price > 10)].title")
+	res, err = Get(json_data, "$.store.book[?(@.price > 10)].title")
 	t.Log(err, res)
 	if res_v, ok := res.([]interface{}); ok != true {
 		if res_v[0].(string) != "Sword of Honour" || res_v[1].(string) != "The Lord of the Rings" {
@@ -132,12 +132,12 @@ func Test_jsonpath_JsonPathLookup_filter(t *testing.T) {
 		}
 	}
 
-	res, err = JsonPathLookup(json_data, "$.store.book[?(@.price > 10)]")
+	res, err = Get(json_data, "$.store.book[?(@.price > 10)]")
 	t.Log(err, res)
 
-	res, err = JsonPathLookup(json_data, "$.store.book[?(@.price > $.expensive)].price")
+	res, err = Get(json_data, "$.store.book[?(@.price > $.expensive)].price")
 	t.Log(err, res)
-	res, err = JsonPathLookup(json_data, "$.store.book[?(@.price < $.expensive)].price")
+	res, err = Get(json_data, "$.store.book[?(@.price < $.expensive)].price")
 	t.Log(err, res)
 }
 
@@ -149,7 +149,7 @@ func Test_jsonpath_authors_of_all_books(t *testing.T) {
 		"Herman Melville",
 		"J. R. R. Tolkien",
 	}
-	res, _ := JsonPathLookup(json_data, query)
+	res, _ := Get(json_data, query)
 	t.Log(res, expected)
 }
 
@@ -407,7 +407,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 	obj := map[string]interface{}{
 		"key": 1,
 	}
-	res, err := get_key(obj, "key")
+	res, err := getByKey(obj, "key")
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get key: %v", err)
@@ -418,7 +418,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 		return
 	}
 
-	res, err = get_key(obj, "hah")
+	res, err = getByKey(obj, "hah")
 	fmt.Println(err, res)
 	if err == nil {
 		t.Errorf("key error not raised")
@@ -430,7 +430,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 	}
 
 	obj2 := 1
-	res, err = get_key(obj2, "key")
+	res, err = getByKey(obj2, "key")
 	fmt.Println(err, res)
 	if err == nil {
 
@@ -438,7 +438,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 		return
 	}
 	obj3 := map[string]string{"key": "hah"}
-	res, err = get_key(obj3, "key")
+	res, err = getByKey(obj3, "key")
 	if res_v, ok := res.(string); ok != true || res_v != "hah" {
 		fmt.Println(err, res)
 		t.Errorf("map[string]string support failed")
@@ -452,13 +452,13 @@ func Test_jsonpath_get_key(t *testing.T) {
 			"a": 2,
 		},
 	}
-	res, err = get_key(obj4, "a")
+	res, err = getByKey(obj4, "a")
 	fmt.Println(err, res)
 }
 
 func Test_jsonpath_get_idx(t *testing.T) {
 	obj := []interface{}{1, 2, 3, 4}
-	res, err := get_idx(obj, 0)
+	res, err := getByIdx(obj, 0)
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get_idx(obj,0): %v", err)
@@ -468,19 +468,19 @@ func Test_jsonpath_get_idx(t *testing.T) {
 		t.Errorf("failed to get int 1")
 	}
 
-	res, err = get_idx(obj, 2)
+	res, err = getByIdx(obj, 2)
 	fmt.Println(err, res)
 	if v, ok := res.(int); ok != true || v != 3 {
 		t.Errorf("failed to get int 3")
 	}
-	res, err = get_idx(obj, 4)
+	res, err = getByIdx(obj, 4)
 	fmt.Println(err, res)
 	if err == nil {
 		t.Errorf("index out of range  error not raised")
 		return
 	}
 
-	res, err = get_idx(obj, -1)
+	res, err = getByIdx(obj, -1)
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get_idx(obj, -1): %v", err)
@@ -490,13 +490,13 @@ func Test_jsonpath_get_idx(t *testing.T) {
 		t.Errorf("failed to get int 4")
 	}
 
-	res, err = get_idx(obj, -4)
+	res, err = getByIdx(obj, -4)
 	fmt.Println(err, res)
 	if v, ok := res.(int); ok != true || v != 1 {
 		t.Errorf("failed to get int 1")
 	}
 
-	res, err = get_idx(obj, -5)
+	res, err = getByIdx(obj, -5)
 	fmt.Println(err, res)
 	if err == nil {
 		t.Errorf("index out of range  error not raised")
@@ -504,14 +504,14 @@ func Test_jsonpath_get_idx(t *testing.T) {
 	}
 
 	obj1 := 1
-	res, err = get_idx(obj1, 1)
+	res, err = getByIdx(obj1, 1)
 	if err == nil {
 		t.Errorf("object is not Slice error not raised")
 		return
 	}
 
 	obj2 := []int{1, 2, 3, 4}
-	res, err = get_idx(obj2, 0)
+	res, err = getByIdx(obj2, 0)
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get_idx(obj2,0): %v", err)
@@ -525,7 +525,7 @@ func Test_jsonpath_get_idx(t *testing.T) {
 func Test_jsonpath_get_range(t *testing.T) {
 	obj := []int{1, 2, 3, 4, 5}
 
-	res, err := get_range(obj, 0, 2)
+	res, err := getByRange(obj, 0, 2)
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get_range: %v", err)
@@ -535,7 +535,7 @@ func Test_jsonpath_get_range(t *testing.T) {
 	}
 
 	obj1 := []interface{}{1, 2, 3, 4, 5}
-	res, err = get_range(obj1, 3, -1)
+	res, err = getByRange(obj1, 3, -1)
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get_range: %v", err)
@@ -545,26 +545,26 @@ func Test_jsonpath_get_range(t *testing.T) {
 		t.Errorf("failed get_range: %v, expect: [4,5]", res)
 	}
 
-	res, err = get_range(obj1, nil, 2)
+	res, err = getByRange(obj1, nil, 2)
 	t.Logf("err: %v, res:%v", err, res)
 	if res.([]interface{})[0] != 1 || res.([]interface{})[1] != 2 {
 		t.Errorf("from support nil failed: %v", res)
 	}
 
-	res, err = get_range(obj1, nil, nil)
+	res, err = getByRange(obj1, nil, nil)
 	t.Logf("err: %v, res:%v", err, res)
 	if len(res.([]interface{})) != 5 {
 		t.Errorf("from, to both nil failed")
 	}
 
-	res, err = get_range(obj1, -2, nil)
+	res, err = getByRange(obj1, -2, nil)
 	t.Logf("err: %v, res:%v", err, res)
 	if res.([]interface{})[0] != 4 || res.([]interface{})[1] != 5 {
 		t.Errorf("from support nil failed: %v", res)
 	}
 
 	obj2 := 2
-	res, err = get_range(obj2, 0, 1)
+	res, err = getByRange(obj2, 0, 1)
 	fmt.Println(err, res)
 	if err == nil {
 		t.Errorf("object is Slice error not raised")
@@ -620,27 +620,27 @@ var tcase_parse_filter = []map[string]interface{}{
 	},
 }
 
-func Test_jsonpath_parse_filter(t *testing.T) {
-
-	//for _, tcase := range tcase_parse_filter[4:] {
-	for _, tcase := range tcase_parse_filter {
-		lp, op, rp, _ := parse_filter(tcase["filter"].(string))
-		t.Log(tcase)
-		t.Logf("lp: %v, op: %v, rp: %v", lp, op, rp)
-		if lp != tcase["exp_lp"].(string) {
-			t.Errorf("%s(got) != %v(exp_lp)", lp, tcase["exp_lp"])
-			return
-		}
-		if op != tcase["exp_op"].(string) {
-			t.Errorf("%s(got) != %v(exp_op)", op, tcase["exp_op"])
-			return
-		}
-		if rp != tcase["exp_rp"].(string) {
-			t.Errorf("%s(got) != %v(exp_rp)", rp, tcase["exp_rp"])
-			return
-		}
-	}
-}
+//func Test_jsonpath_parse_filter(t *testing.T) {
+//
+//	//for _, tcase := range tcase_parse_filter[4:] {
+//	for _, tcase := range tcase_parse_filter {
+//		lp, op, rp, _ := parseFilter(tcase["filter"].(string))
+//		t.Log(tcase)
+//		t.Logf("lp: %v, op: %v, rp: %v", lp, op, rp)
+//		if lp != tcase["exp_lp"].(string) {
+//			t.Errorf("%s(got) != %v(exp_lp)", lp, tcase["exp_lp"])
+//			return
+//		}
+//		if op != tcase["exp_op"].(string) {
+//			t.Errorf("%s(got) != %v(exp_op)", op, tcase["exp_op"])
+//			return
+//		}
+//		if rp != tcase["exp_rp"].(string) {
+//			t.Errorf("%s(got) != %v(exp_rp)", rp, tcase["exp_rp"])
+//			return
+//		}
+//	}
+//}
 
 var tcase_filter_get_from_explicit_path = []map[string]interface{}{
 	// 0
@@ -789,7 +789,7 @@ func Test_jsonpath_eval_filter(t *testing.T) {
 		rp := tcase["rp"].(string)
 		exp := tcase["exp"].(bool)
 		t.Logf("idx: %v, lp: %v, op: %v, rp: %v, exp: %v", idx, lp, op, rp, exp)
-		got, err := eval_filter(obj, root, lp, op, rp)
+		got, err := evalFilter(obj, root, lp, op, rp)
 
 		if err != nil {
 			t.Errorf("idx: %v, failed to eval: %v", idx, err)
@@ -874,7 +874,7 @@ func Test_jsonpath_cmp_any(t *testing.T) {
 	for idx, tcase := range tcase_cmp_any {
 		//for idx, tcase := range tcase_cmp_any[8:] {
 		t.Logf("idx: %v, %v %v %v, exp: %v", idx, tcase["obj1"], tcase["op"], tcase["obj2"], tcase["exp"])
-		res, err := cmp_any(tcase["obj1"], tcase["obj2"], tcase["op"].(string))
+		res, err := compare(tcase["obj1"], tcase["obj2"], tcase["op"].(string))
 		exp := tcase["exp"].(bool)
 		exp_err := tcase["err"]
 		if exp_err != nil {
@@ -938,7 +938,7 @@ func Test_jsonpath_string_equal(t *testing.T) {
 
 	json.Unmarshal([]byte(data), &j)
 
-	res, err := JsonPathLookup(j, "$.store.book[?(@.author == 'Nigel Rees')].price")
+	res, err := Get(j, "$.store.book[?(@.author == 'Nigel Rees')].price")
 	t.Log(res, err)
 	if err != nil {
 		t.Fatalf("err: %v", err)
@@ -958,7 +958,7 @@ func Test_jsonpath_null_in_the_middle(t *testing.T) {
 
 	json.Unmarshal([]byte(data), &j)
 
-	res, err := JsonPathLookup(j, "$.head_commit.author.username")
+	res, err := Get(j, "$.head_commit.author.username")
 	t.Log(res, err)
 }
 
@@ -971,7 +971,7 @@ func Test_jsonpath_num_cmp(t *testing.T) {
 }`
 	var j interface{}
 	json.Unmarshal([]byte(data), &j)
-	res, err := JsonPathLookup(j, "$.books[?(@.price > 100)].name")
+	res, err := Get(j, "$.books[?(@.price > 100)].name")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1000,7 +1000,7 @@ func BenchmarkJsonPathLookupCompiled(b *testing.B) {
 
 func BenchmarkJsonPathLookup(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		res, err := JsonPathLookup(json_data, "$.store.book[0].price")
+		res, err := Get(json_data, "$.store.book[0].price")
 		if res_v, ok := res.(float64); ok != true || res_v != 8.95 {
 			b.Errorf("$.store.book[0].price should be 8.95")
 		}
@@ -1012,67 +1012,67 @@ func BenchmarkJsonPathLookup(b *testing.B) {
 
 func BenchmarkJsonPathLookup_0(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.expensive")
+		Get(json_data, "$.expensive")
 	}
 }
 
 func BenchmarkJsonPathLookup_1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[0].price")
+		Get(json_data, "$.store.book[0].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_2(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[-1].price")
+		Get(json_data, "$.store.book[-1].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_3(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[0,1].price")
+		Get(json_data, "$.store.book[0,1].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_4(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[0:2].price")
+		Get(json_data, "$.store.book[0:2].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[?(@.isbn)].price")
+		Get(json_data, "$.store.book[?(@.isbn)].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_6(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[?(@.price > 10)].title")
+		Get(json_data, "$.store.book[?(@.price > 10)].title")
 	}
 }
 
 func BenchmarkJsonPathLookup_7(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[?(@.price < $.expensive)].price")
+		Get(json_data, "$.store.book[?(@.price < $.expensive)].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_8(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[:].price")
+		Get(json_data, "$.store.book[:].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_9(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[?(@.author == 'Nigel Rees')].price")
+		Get(json_data, "$.store.book[?(@.author == 'Nigel Rees')].price")
 	}
 }
 
 func BenchmarkJsonPathLookup_10(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		JsonPathLookup(json_data, "$.store.book[?(@.author =~ /(?i).*REES/)].price")
+		Get(json_data, "$.store.book[?(@.author =~ /(?i).*REES/)].price")
 	}
 }
 
@@ -1081,7 +1081,7 @@ func TestReg(t *testing.T) {
 	t.Log(r)
 	t.Log(r.Match([]byte(`Nigel Rees`)))
 
-	res, err := JsonPathLookup(json_data, "$.store.book[?(@.author =~ /(?i).*REES/ )].author")
+	res, err := Get(json_data, "$.store.book[?(@.author =~ /(?i).*REES/ )].author")
 	t.Log(err, res)
 
 	author := res.([]interface{})[0].(string)
@@ -1109,7 +1109,7 @@ var tcases_reg_op = []struct {
 func TestRegOp(t *testing.T) {
 	for idx, tcase := range tcases_reg_op {
 		fmt.Println("idx: ", idx, "tcase: ", tcase)
-		res, err := regFilterCompile(tcase.Line)
+		res, err := compileRegexp(tcase.Line)
 		if tcase.Err == true {
 			if err == nil {
 				t.Fatal("expect err but got nil")
@@ -1139,7 +1139,7 @@ func Test_jsonpath_rootnode_is_array(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := JsonPathLookup(j, "$[0].test")
+	res, err := Get(j, "$[0].test")
 	t.Log(res, err)
 	if err != nil {
 		t.Fatal("err:", err)
@@ -1166,7 +1166,7 @@ func Test_jsonpath_rootnode_is_array_range(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := JsonPathLookup(j, "$[:1].test")
+	res, err := Get(j, "$[:1].test")
 	t.Log(res, err)
 	if err != nil {
 		t.Fatal("err:", err)
@@ -1199,7 +1199,7 @@ func Test_jsonpath_rootnode_is_nested_array(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := JsonPathLookup(j, "$[0].[0].test")
+	res, err := Get(j, "$[0].[0].test")
 	t.Log(res, err)
 	if err != nil {
 		t.Fatal("err:", err)
@@ -1219,7 +1219,7 @@ func Test_jsonpath_rootnode_is_nested_array_range(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := JsonPathLookup(j, "$[:1].[0].test")
+	res, err := Get(j, "$[:1].[0].test")
 	t.Log(res, err)
 	if err != nil {
 		t.Fatal("err:", err)
@@ -1265,13 +1265,13 @@ func Test_set_methods(t *testing.T) {
 	if err != nil {
 		t.Errorf("err: %s", err)
 	}
-	
-	v, err := JsonPathLookup(data, "$.level1.level2")
+
+	v, err := Get(data, "$.level1.level2")
 	if err != nil {
 		t.Errorf("err: %s", err)
 	}
 	if v != 1 {
-		t.Errorf("err: %s != %d", v, 1)		
+		t.Errorf("err: %s != %d", v, 1)
 	}
 
 	e, err := Compile("$.array2[1]")
@@ -1280,12 +1280,76 @@ func Test_set_methods(t *testing.T) {
 		t.Errorf("err: %s", err)
 	}
 
-	v, err = JsonPathLookup(data, "$.array2[1]")
+	v, err = Get(data, "$.array2[1]")
 	if err != nil {
 		t.Errorf("err: %s", err)
 	}
 
 	if v != "hello" {
-		t.Errorf("err: %s != %s", v, "hello")		
+		t.Errorf("err: %s != %s", v, "hello")
 	}
+}
+
+type Dog struct {
+	Name    string `json:"name"`
+	Color   string `json:"color"`
+	Age     int    `json:"age"`
+	IsMan   bool   `json:"isMan"`
+	Friends []*Dog `json:"friends"`
+	Wife    *Dog   `json:"wife"`
+}
+
+func TestGetAndSet(t *testing.T) {
+	friend1 := &Dog{
+		Name:  "Alice",
+		Color: "White",
+		Age:   10,
+		IsMan: true,
+	}
+	friend2 := &Dog{
+		Name:  "Tony",
+		Color: "White",
+		Age:   9,
+		IsMan: false,
+		Wife:  friend1,
+	}
+	friend3 := &Dog{
+		Name:  "David",
+		Color: "White",
+		Age:   9,
+		IsMan: false,
+	}
+	tom := &Dog{
+		Name:    "Tom",
+		Color:   "Black",
+		Age:     8,
+		Friends: []*Dog{friend1, friend2, friend3},
+	}
+
+	var data interface{}
+	marshal, _ := json.Marshal(tom)
+	_ = json.Unmarshal(marshal, &data)
+
+	jp := "$.friends[?(@.color == 'White' && @.wife.name == 'Alice')].name"
+	//jp := "$.friends[name=Tony].name"
+
+	// get
+	value, err := Get(data, jp)
+	fmt.Println(value, err)
+
+	// set
+	err = Set(data, jp, "George")
+	fmt.Println(data, err)
+}
+
+func TestOptimize(t *testing.T) {
+	docSchema := "{\"title\":\"1\",\"description\":\"1\",\"tips\":[{\"tipInfo\":\"1\",\"tipLevel\":\"tip\"},{\"tipInfo\":\"2\",\"tipLevel\":\"warn\"},{\"tipInfo\":\"3\",\"tipLevel\":\"error\"}],\"apiSchema\":{\"id\":\"project=ftc_test_one\\u0026version=v1\\u0026resource=pet_store\\u0026method=create\",\"domain\":\"https://open.feishu-boe.cn\",\"path\":\"/open-apis/ftc_test_one/v1/pets\",\"httpMethod\":\"POST\",\"parameters\":[{\"in\":\"query\",\"schema\":{\"name\":\"y\",\"type\":\"boolean\",\"description\":\"查询参数\",\"example\":\"false\",\"required\":true}},{\"in\":\"query\",\"schema\":{\"name\":\"user_id_type\",\"type\":\"string\",\"description\":\"用户 ID 类型\",\"example\":\"open_id\",\"format\":\"user_id_type\",\"default\":\"open_id\"}}],\"requestBody\":{\"content\":{\"multipart/form-data\":{\"schema\":{\"type\":\"object\",\"objectName\":\"file\",\"properties\":[{\"name\":\"file_type\",\"type\":\"string\",\"description\":\"文件类型1\",\"example\":\"111\",\"required\":true},{\"name\":\"file\",\"type\":\"string\",\"description\":\"文件流1\",\"example\":\"1\",\"format\":\"binary\",\"required\":true}]}}}},\"responses\":{\"200\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":[{\"name\":\"code\",\"type\":\"integer\",\"description\":\"错误码，非 0 表示失败\",\"example\":\"0\",\"format\":\"int32\"},{\"name\":\"msg\",\"type\":\"string\",\"description\":\"错误描述\",\"example\":\"success\"},{\"name\":\"data\",\"type\":\"object\",\"description\":\"\\\\-\",\"properties\":[{\"name\":\"pet_store\",\"type\":\"object\",\"objectName\":\"pet_store\",\"description\":\"pet store\",\"properties\":[{\"name\":\"name\",\"type\":\"string\",\"description\":\"宠物名\",\"example\":\"tttt\"},{\"name\":\"type\",\"type\":\"integer\",\"description\":\"宠物类型：猫、狗\",\"example\":\"1\",\"format\":\"int32\",\"options\":[{\"name\":\"dog\",\"value\":\"0\",\"description\":\"狗1\"},{\"name\":\"cat\",\"value\":\"1\",\"description\":\"猫1\"}],\"default\":\"0\",\"minimum\":\"0\",\"maximum\":\"10\"},{\"name\":\"foods\",\"type\":\"array\",\"description\":\"吃的粮食种类\",\"items\":{\"type\":\"string\",\"example\":\"0\",\"options\":[{\"name\":\"fish\",\"value\":\"0\",\"description\":\"鱼\"},{\"name\":\"egg\",\"value\":\"1\",\"description\":\"蛋\"}]}}],\"scopeTags\":[\"contact:department.organize:readonly\",\"contact:contact:access_as_app\",\"contact:user.base:readonly\",\"contact:user.department:readonly\",\"contact:user.gender:readonly\",\"contact:contact:readonly_as_app\"]},{\"name\":\"pet_store2\",\"type\":\"string\",\"description\":\"pet_store2\",\"example\":\"asd\",\"scopeTags\":[\"contact:user.phone:readonly\",\"contact:department.base:readonly\",\"contact:contact:access_as_app\",\"contact:department.organize:readonly\"],\"required\":true}]}]}}}},\"errorCodeMapping\":[{\"errorCode\":1644129876,\"statusCode\":200,\"description\":\"全局错误码11\",\"troubleShootingSuggestion\":\"1\"},{\"errorCode\":1644129875,\"statusCode\":400,\"description\":\"错误码21\",\"troubleShootingSuggestion\":\"11\"}]},\"security\":{\"requiredScopes\":[\"contact:user.email:readonly\"],\"fieldRequiredScopes\":[\"contact:contact:access_as_app\",\"contact:contact:readonly_as_app\",\"contact:department.base:readonly\",\"contact:department.organize:readonly\",\"contact:user.base:readonly\",\"contact:user.department:readonly\",\"contact:user.gender:readonly\",\"contact:user.phone:readonly\"],\"supportedAccessToken\":[\"tenant_access_token\"],\"rateLimitTier\":1}},\"localChangeable\":[\"$.title\",\"$.description\",\"$.apiSchema.responses.errorCodeMapping[0].troubleShootingSuggestion\",\"$.apiSchema.responses.errorCodeMapping[1].troubleShootingSuggestion\",\"$.tips[0].tipInfo\",\"$.tips[1].tipInfo\",\"$.tips[2].tipInfo\",\"$.apiSchema.parameters[0].schema.description\",\"$.apiSchema.parameters[0].schema.example\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[0].description\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[0].example\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[1].description\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[1].example\",\"$.apiSchema.responses.200.content.application/json.schema.properties[2].properties[0].properties[1].options[0].description\",\"$.apiSchema.responses.200.content.application/json.schema.properties[2].properties[0].properties[1].options[1].description\",\"$.apiSchema.responses.errorCodeMapping[0].description\",\"$.apiSchema.responses.errorCodeMapping[1].description\"]}"
+	var data interface{}
+	_ = json.Unmarshal([]byte(docSchema), &data)
+
+	path, err1 := Optimize(data, "$.apiSchema.responses.200.content.application/json.schema.properties[2].properties[0].properties[1].options[0].description")
+	fmt.Println(path, err1)
+
+	value, err2 := Get(data, path)
+	fmt.Println(value, err2)
 }

@@ -38,18 +38,17 @@ Operators
 --------
 referenced from github.com/jayway/JsonPath
 
-| Operator            | Supported | Description                                                                               |
-|---------------------| :---: |-------------------------------------------------------------------------------------------|
-| $ 					             | Y | The root element to query. This starts all path expressions.                              |
-| @ 				              | Y | The current node being processed by a filter predicate.                                   |
-| * 					             | X | Wildcard. Available anywhere a name or numeric are required.                              |
-| .. 					            | X | Deep scan. Available anywhere a name is required.                                         |
-| .<name> 				        | Y | Dot-notated child                                                                         |
-| ['<name>' (, '<name>')] | X | Bracket-notated child or children                                                         |
-| [<number> (, <number>)] | Y | Array index or indexes                                                                    |
-| [start:end] 			     | Y | Array slice operator                                                                      |
-| [?(<expression>)] 	 | Y | Filter expression. Expression must evaluate to a boolean value.                           |
-| [field=target] 			  | Y | Match expression. Return the first matched element whose field's value is equal to target |
+| Operator                  | Supported  | Description                                                     |
+|:--------------------------|:-----------|:----------------------------------------------------------------|
+| `$` 				         | Y          | The root element to query. This starts all path expressions.    |
+| `@` 				         | Y          | The current node being processed by a filter predicate.         |
+| `*` 					     | X          | Wildcard. Available anywhere a name or numeric are required.    |
+| `..` 					 | X          | Deep scan. Available anywhere a name is required.               |
+| `.<name>` 				 | Y          | Dot-notated child                                               |
+| `['<name>' (, '<name>')]` | X          | Bracket-notated child or children                               |
+| `[<number> (, <number>)]` | Y          | Array index or indexes                                          |
+| `[start:end]` 			 | Y          | Array slice operator                                            |
+| `[?(<expression>)]` 	     | Y          | Filter expression. Expression must evaluate to a boolean value. |
 
 Examples
 --------
@@ -97,18 +96,17 @@ given these example data.
 example json path syntax.
 ----
 
-| jsonpath                                                | result|
-|:--------------------------------------------------------| :-------|
-| $.expensive 			                                         | 10|
-| $.store.book[0].price                                   | 8.95|
-| $.store.book[-1].isbn                                   | "0-395-19395-8"|
-| $.store.book[0,1].price                                 | [8.95, 12.99]   |
-| $.store.book[0:2].price                                 | [8.95, 12.99, 8.99]|
-| $.store.book[?(@.isbn)].price                           |  [8.99, 22.99] |
-| $.store.book[?(@.price > 10)].title                     | ["Sword of Honour", "The Lord of the Rings"]|
-| $.store.book[?(@.price < $.expensive)].price            | [8.95, 8.99] |
-| $.store.book[:].price                                   | [8.9.5, 12.99, 8.9.9, 22.99] |
-| $.store.book[?(@.author =~ /(?i).*REES/)].author        | "Nigel Rees" |
-| $.store.book[category=reference].price                  | 8.95 |
+| jsonpath                                                            | result                       |
+|:--------------------------------------------------------------------|:-----------------------------|
+| `$.expensive` 			                                           | 10                           |
+| `$.store.book[0].price`                                             | 8.95                         |
+| `$.store.book[-1].isbn`                                             | "0-395-19395-8"              |
+| `$.store.book[0,1].price`                                           | [8.95, 12.99]                |
+| `$.store.book[0:2].price`                                           | [8.95, 12.99, 8.99]          |
+| `$.store.book[?(@.isbn)].price`                                     | [8.99, 22.99]                |
+| `$.store.book[?(@.price > 10 && @.author == 'Evelyn Waugh')].title` | ["Sword of Honour"]          |
+| `$.store.book[?(@.price < $.expensive)].price`                      | [8.95, 8.99]                 |
+| `$.store.book[:].price`                                             | [8.9.5, 12.99, 8.9.9, 22.99] |
+| `$.store.book[?(@.author =~ /(?i).*REES/)].author`                  | "Nigel Rees"                 |
 
 > Note: golang support regular expression flags in form of `(?imsU)pattern`

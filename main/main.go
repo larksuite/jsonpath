@@ -38,7 +38,7 @@ func main() {
 	marshal, _ := json.Marshal(tom)
 	_ = json.Unmarshal(marshal, &data)
 
-	jp := "$.friends[*].name"
+	jp := "$.friends[?(@.color == 'White' && @.wife.name == 'Alice')].name"
 	//jp := "$.friends[name=Tony].name"
 
 	// get

@@ -58,33 +58,33 @@ func init() {
 func Test_jsonpath_JsonPathLookup_1(t *testing.T) {
 	// key from root
 	res, _ := Get(json_data, "$.expensive")
-	if res_v, ok := res.(float64); ok != true || res_v != 10.0 {
+	if res_v, ok := res.Value().(float64); ok != true || res_v != 10.0 {
 		t.Errorf("expensive should be 10")
 	}
 
 	// single index
 	res, _ = Get(json_data, "$.store.book[0].price")
-	if res_v, ok := res.(float64); ok != true || res_v != 8.95 {
+	if res_v, ok := res.Value().(float64); ok != true || res_v != 8.95 {
 		t.Errorf("$.store.book[0].price should be 8.95")
 	}
 
 	// nagtive single index
 	res, _ = Get(json_data, "$.store.book[-1].isbn")
-	if res_v, ok := res.(string); ok != true || res_v != "0-395-19395-8" {
+	if res_v, ok := res.Value().(string); ok != true || res_v != "0-395-19395-8" {
 		t.Errorf("$.store.book[-1].isbn should be \"0-395-19395-8\"")
 	}
 
 	// multiple index
 	res, err := Get(json_data, "$.store.book[0,1].price")
 	t.Log(err, res)
-	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 {
+	if res_v, ok := res.Value().([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 {
 		t.Errorf("exp: [8.95, 12.99], got: %v", res)
 	}
 
 	// multiple index
 	res, err = Get(json_data, "$.store.book[0,1].title")
 	t.Log(err, res)
-	if res_v, ok := res.([]interface{}); ok != true {
+	if res_v, ok := res.Value().([]interface{}); ok != true {
 		if res_v[0].(string) != "Sayings of the Century" || res_v[1].(string) != "Sword of Honour" {
 			t.Errorf("title are wrong: %v", res)
 		}
@@ -93,21 +93,21 @@ func Test_jsonpath_JsonPathLookup_1(t *testing.T) {
 	// full array
 	res, err = Get(json_data, "$.store.book[0:].price")
 	t.Log(err, res)
-	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 || res_v[2].(float64) != 8.99 || res_v[3].(float64) != 22.99 {
+	if res_v, ok := res.Value().([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 || res_v[2].(float64) != 8.99 || res_v[3].(float64) != 22.99 {
 		t.Errorf("exp: [8.95, 12.99, 8.99, 22.99], got: %v", res)
 	}
 
 	// range
 	res, err = Get(json_data, "$.store.book[0:1].price")
 	t.Log(err, res)
-	if res_v, ok := res.([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 {
+	if res_v, ok := res.Value().([]interface{}); ok != true || res_v[0].(float64) != 8.95 || res_v[1].(float64) != 12.99 {
 		t.Errorf("exp: [8.95, 12.99], got: %v", res)
 	}
 
 	// range
 	res, err = Get(json_data, "$.store.book[0:1].title")
 	t.Log(err, res)
-	if res_v, ok := res.([]interface{}); ok != true {
+	if res_v, ok := res.Value().([]interface{}); ok != true {
 		if res_v[0].(string) != "Sayings of the Century" || res_v[1].(string) != "Sword of Honour" {
 			t.Errorf("title are wrong: %v", res)
 		}
@@ -118,7 +118,7 @@ func Test_jsonpath_JsonPathLookup_filter(t *testing.T) {
 	res, err := Get(json_data, "$.store.book[?(@.isbn)].isbn")
 	t.Log(err, res)
 
-	if res_v, ok := res.([]interface{}); ok != true {
+	if res_v, ok := res.Value().([]interface{}); ok != true {
 		if res_v[0].(string) != "0-553-21311-3" || res_v[1].(string) != "0-395-19395-8" {
 			t.Errorf("error: %v", res)
 		}
@@ -126,7 +126,7 @@ func Test_jsonpath_JsonPathLookup_filter(t *testing.T) {
 
 	res, err = Get(json_data, "$.store.book[?(@.price > 10)].title")
 	t.Log(err, res)
-	if res_v, ok := res.([]interface{}); ok != true {
+	if res_v, ok := res.Value().([]interface{}); ok != true {
 		if res_v[0].(string) != "Sword of Honour" || res_v[1].(string) != "The Lord of the Rings" {
 			t.Errorf("error: %v", res)
 		}
@@ -221,7 +221,7 @@ func Test_jsonpath_tokenize(t *testing.T) {
 		t.Logf("idx[%d], tcase: %v", idx, tcase)
 		query := tcase["query"].(string)
 		expected_tokens := tcase["tokens"].([]string)
-		tokens, err := tokenize(query)
+		tokens, err := parse(query)
 		t.Log(err, tokens, expected_tokens)
 		if len(tokens) != len(expected_tokens) {
 			t.Errorf("different length: (got)%v, (expected)%v", len(tokens), len(expected_tokens))
@@ -343,7 +343,7 @@ func Test_jsonpath_parse_token(t *testing.T) {
 		exp_key := tcase["key"].(string)
 		exp_args := tcase["args"]
 
-		op, key, args, err := parse_token(token)
+		op, key, args, err := parseFragment(token)
 		t.Logf("[%d] - expected: op: %v, key: %v, args: %v\n", idx, exp_op, exp_key, exp_args)
 		t.Logf("[%d] - got: err: %v, op: %v, key: %v, args: %v\n", idx, err, op, key, args)
 		if op != exp_op {
@@ -407,7 +407,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 	obj := map[string]interface{}{
 		"key": 1,
 	}
-	res, err := getByKey(obj, "key")
+	res, err := _getByKey(obj, "key")
 	fmt.Println(err, res)
 	if err != nil {
 		t.Errorf("failed to get key: %v", err)
@@ -418,7 +418,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 		return
 	}
 
-	res, err = getByKey(obj, "hah")
+	res, err = _getByKey(obj, "hah")
 	fmt.Println(err, res)
 	if err == nil {
 		t.Errorf("key error not raised")
@@ -430,7 +430,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 	}
 
 	obj2 := 1
-	res, err = getByKey(obj2, "key")
+	res, err = _getByKey(obj2, "key")
 	fmt.Println(err, res)
 	if err == nil {
 
@@ -438,7 +438,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 		return
 	}
 	obj3 := map[string]string{"key": "hah"}
-	res, err = getByKey(obj3, "key")
+	res, err = _getByKey(obj3, "key")
 	if res_v, ok := res.(string); ok != true || res_v != "hah" {
 		fmt.Println(err, res)
 		t.Errorf("map[string]string support failed")
@@ -452,7 +452,7 @@ func Test_jsonpath_get_key(t *testing.T) {
 			"a": 2,
 		},
 	}
-	res, err = getByKey(obj4, "a")
+	res, err = _getByKey(obj4, "a")
 	fmt.Println(err, res)
 }
 
@@ -689,7 +689,7 @@ func Test_jsonpath_filter_get_from_explicit_path(t *testing.T) {
 		query := tcase["query"].(string)
 		expected := tcase["expected"]
 
-		res, err := filter_get_from_explicit_path(obj, query)
+		res, err := filterGetFromExplicitPath(obj, query)
 		t.Log(idx, err, res)
 		if err != nil {
 			t.Errorf("flatten_cases: failed: [%d] %v", idx, err)
@@ -975,7 +975,7 @@ func Test_jsonpath_num_cmp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	arr := res.([]interface{})
+	arr := res.Value().([]interface{})
 	if len(arr) != 0 {
 		t.Fatal("should return [], got: ", arr)
 	}
@@ -988,7 +988,7 @@ func BenchmarkJsonPathLookupCompiled(b *testing.B) {
 		b.Fatalf("%v", err)
 	}
 	for n := 0; n < b.N; n++ {
-		res, err := c.Lookup(json_data)
+		res, err := c._Lookup(json_data)
 		if res_v, ok := res.(float64); ok != true || res_v != 8.95 {
 			b.Errorf("$.store.book[0].price should be 8.95")
 		}
@@ -1001,7 +1001,7 @@ func BenchmarkJsonPathLookupCompiled(b *testing.B) {
 func BenchmarkJsonPathLookup(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		res, err := Get(json_data, "$.store.book[0].price")
-		if res_v, ok := res.(float64); ok != true || res_v != 8.95 {
+		if res_v, ok := res.Value().(float64); ok != true || res_v != 8.95 {
 			b.Errorf("$.store.book[0].price should be 8.95")
 		}
 		if err != nil {
@@ -1084,7 +1084,7 @@ func TestReg(t *testing.T) {
 	res, err := Get(json_data, "$.store.book[?(@.author =~ /(?i).*REES/ )].author")
 	t.Log(err, res)
 
-	author := res.([]interface{})[0].(string)
+	author := res.Value().([]interface{})[0].(string)
 	t.Log(author)
 	if author != "Nigel Rees" {
 		t.Fatal("should be `Nigel Rees` but got: ", author)
@@ -1144,7 +1144,7 @@ func Test_jsonpath_rootnode_is_array(t *testing.T) {
 	if err != nil {
 		t.Fatal("err:", err)
 	}
-	if res == nil || res.(float64) != 12.34 {
+	if res == nil || res.Value().(float64) != 12.34 {
 		t.Fatalf("different:  res:%v, exp: 123", res)
 	}
 }
@@ -1174,7 +1174,7 @@ func Test_jsonpath_rootnode_is_array_range(t *testing.T) {
 	if res == nil {
 		t.Fatal("res is nil")
 	}
-	ares := res.([]interface{})
+	ares := res.Value().([]interface{})
 	for idx, v := range ares {
 		t.Logf("idx: %v, v: %v", idx, v)
 	}
@@ -1204,7 +1204,7 @@ func Test_jsonpath_rootnode_is_nested_array(t *testing.T) {
 	if err != nil {
 		t.Fatal("err:", err)
 	}
-	if res == nil || res.(float64) != 1.1 {
+	if res == nil || res.Value().(float64) != 1.1 {
 		t.Fatalf("different:  res:%v, exp: 123", res)
 	}
 }
@@ -1227,7 +1227,7 @@ func Test_jsonpath_rootnode_is_nested_array_range(t *testing.T) {
 	if res == nil {
 		t.Fatal("res is nil")
 	}
-	ares := res.([]interface{})
+	ares := res.Value().([]interface{})
 	for idx, v := range ares {
 		t.Logf("idx: %v, v: %v", idx, v)
 	}
@@ -1270,8 +1270,8 @@ func Test_set_methods(t *testing.T) {
 	if err != nil {
 		t.Errorf("err: %s", err)
 	}
-	if v != 1 {
-		t.Errorf("err: %s != %d", v, 1)
+	if v.Value() != 1 {
+		t.Errorf("err: %s != %d", v.Value(), 1)
 	}
 
 	e, err := Compile("$.array2[1]")
@@ -1285,8 +1285,8 @@ func Test_set_methods(t *testing.T) {
 		t.Errorf("err: %s", err)
 	}
 
-	if v != "hello" {
-		t.Errorf("err: %s != %s", v, "hello")
+	if v.Value() != "hello" {
+		t.Errorf("err: %s != %s", v.Value(), "hello")
 	}
 }
 
@@ -1335,7 +1335,7 @@ func TestGetAndSet(t *testing.T) {
 
 	// get
 	value, err := Get(data, jp)
-	fmt.Println(value, err)
+	fmt.Println(value.Value(), err)
 
 	// set
 	err = Set(data, jp, "George")
@@ -1344,12 +1344,14 @@ func TestGetAndSet(t *testing.T) {
 
 func TestOptimize(t *testing.T) {
 	docSchema := "{\"title\":\"1\",\"description\":\"1\",\"tips\":[{\"tipInfo\":\"1\",\"tipLevel\":\"tip\"},{\"tipInfo\":\"2\",\"tipLevel\":\"warn\"},{\"tipInfo\":\"3\",\"tipLevel\":\"error\"}],\"apiSchema\":{\"id\":\"project=ftc_test_one\\u0026version=v1\\u0026resource=pet_store\\u0026method=create\",\"domain\":\"https://open.feishu-boe.cn\",\"path\":\"/open-apis/ftc_test_one/v1/pets\",\"httpMethod\":\"POST\",\"parameters\":[{\"in\":\"query\",\"schema\":{\"name\":\"y\",\"type\":\"boolean\",\"description\":\"查询参数\",\"example\":\"false\",\"required\":true}},{\"in\":\"query\",\"schema\":{\"name\":\"user_id_type\",\"type\":\"string\",\"description\":\"用户 ID 类型\",\"example\":\"open_id\",\"format\":\"user_id_type\",\"default\":\"open_id\"}}],\"requestBody\":{\"content\":{\"multipart/form-data\":{\"schema\":{\"type\":\"object\",\"objectName\":\"file\",\"properties\":[{\"name\":\"file_type\",\"type\":\"string\",\"description\":\"文件类型1\",\"example\":\"111\",\"required\":true},{\"name\":\"file\",\"type\":\"string\",\"description\":\"文件流1\",\"example\":\"1\",\"format\":\"binary\",\"required\":true}]}}}},\"responses\":{\"200\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":[{\"name\":\"code\",\"type\":\"integer\",\"description\":\"错误码，非 0 表示失败\",\"example\":\"0\",\"format\":\"int32\"},{\"name\":\"msg\",\"type\":\"string\",\"description\":\"错误描述\",\"example\":\"success\"},{\"name\":\"data\",\"type\":\"object\",\"description\":\"\\\\-\",\"properties\":[{\"name\":\"pet_store\",\"type\":\"object\",\"objectName\":\"pet_store\",\"description\":\"pet store\",\"properties\":[{\"name\":\"name\",\"type\":\"string\",\"description\":\"宠物名\",\"example\":\"tttt\"},{\"name\":\"type\",\"type\":\"integer\",\"description\":\"宠物类型：猫、狗\",\"example\":\"1\",\"format\":\"int32\",\"options\":[{\"name\":\"dog\",\"value\":\"0\",\"description\":\"狗1\"},{\"name\":\"cat\",\"value\":\"1\",\"description\":\"猫1\"}],\"default\":\"0\",\"minimum\":\"0\",\"maximum\":\"10\"},{\"name\":\"foods\",\"type\":\"array\",\"description\":\"吃的粮食种类\",\"items\":{\"type\":\"string\",\"example\":\"0\",\"options\":[{\"name\":\"fish\",\"value\":\"0\",\"description\":\"鱼\"},{\"name\":\"egg\",\"value\":\"1\",\"description\":\"蛋\"}]}}],\"scopeTags\":[\"contact:department.organize:readonly\",\"contact:contact:access_as_app\",\"contact:user.base:readonly\",\"contact:user.department:readonly\",\"contact:user.gender:readonly\",\"contact:contact:readonly_as_app\"]},{\"name\":\"pet_store2\",\"type\":\"string\",\"description\":\"pet_store2\",\"example\":\"asd\",\"scopeTags\":[\"contact:user.phone:readonly\",\"contact:department.base:readonly\",\"contact:contact:access_as_app\",\"contact:department.organize:readonly\"],\"required\":true}]}]}}}},\"errorCodeMapping\":[{\"errorCode\":1644129876,\"statusCode\":200,\"description\":\"全局错误码11\",\"troubleShootingSuggestion\":\"1\"},{\"errorCode\":1644129875,\"statusCode\":400,\"description\":\"错误码21\",\"troubleShootingSuggestion\":\"11\"}]},\"security\":{\"requiredScopes\":[\"contact:user.email:readonly\"],\"fieldRequiredScopes\":[\"contact:contact:access_as_app\",\"contact:contact:readonly_as_app\",\"contact:department.base:readonly\",\"contact:department.organize:readonly\",\"contact:user.base:readonly\",\"contact:user.department:readonly\",\"contact:user.gender:readonly\",\"contact:user.phone:readonly\"],\"supportedAccessToken\":[\"tenant_access_token\"],\"rateLimitTier\":1}},\"localChangeable\":[\"$.title\",\"$.description\",\"$.apiSchema.responses.errorCodeMapping[0].troubleShootingSuggestion\",\"$.apiSchema.responses.errorCodeMapping[1].troubleShootingSuggestion\",\"$.tips[0].tipInfo\",\"$.tips[1].tipInfo\",\"$.tips[2].tipInfo\",\"$.apiSchema.parameters[0].schema.description\",\"$.apiSchema.parameters[0].schema.example\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[0].description\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[0].example\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[1].description\",\"$.apiSchema.requestBody.content.multipart/form-data.schema.properties[1].example\",\"$.apiSchema.responses.200.content.application/json.schema.properties[2].properties[0].properties[1].options[0].description\",\"$.apiSchema.responses.200.content.application/json.schema.properties[2].properties[0].properties[1].options[1].description\",\"$.apiSchema.responses.errorCodeMapping[0].description\",\"$.apiSchema.responses.errorCodeMapping[1].description\"]}"
+	//docSchema := "{\n    \"phoneNumbers\": [\n        {\n            \"type\": \"home\",\n            \"number\": 104,\n            \"test\":[\n                    {\n                        \"type\": \"home\",\n                        \"number\": 104\n                    },\n                    {\n                        \"type\": \"home\",\n                        \"number\": 119\n                    }\n            ]\n        },\n        {\n            \"name\":\"zhangsan\",\n            \"type\": \"home\",\n            \"number\": 119,\n            \"test\":[\n                {\n                    \"type\": \"home1\",\n                    \"number\": 104\n                },\n                {\n                    \"type\": \"home\",\n                    \"number\": 119\n                }\n            ]\n        }\n    ]\n    \n}"
 	var data interface{}
 	_ = json.Unmarshal([]byte(docSchema), &data)
 
-	path, err1 := Optimize(data, "$.apiSchema.responses.200.content.application/json.schema.properties[2].properties[0].properties[1].options[0].description")
+	path := "$.apiSchema.responses.200.content.application/json.schema.properties[?(@.name == 'data')].properties[?(@.name == 'pet_store')].properties[?(@.name == 'type')].options[?(@.name == 'cat')].description"
+	path, err1 := TranslatePath(data, path)
 	fmt.Println(path, err1)
 
 	value, err2 := Get(data, path)
-	fmt.Println(value, err2)
+	fmt.Println(value.Value(), err2)
 }
